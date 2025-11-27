@@ -3,6 +3,7 @@ import cors from "cors"
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import userRoutes from "./routes/user.routes";
+import tripRoutes from "./routes/trip.routes";
 dotenv.config();
 
 const SERVER_PORT = process.env.SERVER_PORT
@@ -21,6 +22,7 @@ app.use(
 
 
 app.use("/api/v1/users", userRoutes)
+app.use("/api/v1/trips", tripRoutes)
 
 mongoose
     .connect(MONGO_URI)
