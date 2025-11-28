@@ -7,7 +7,7 @@ import { AuthRequest } from "../middleware/authenticate";
 dotenv.config();
 
 export const generateTrip = async (req: Request, res: Response) => {
-    
+
     const { destination, noOfDays, budget, travelers } = req.body;
 
     if (!destination || !noOfDays || !budget || !travelers) {
@@ -54,7 +54,7 @@ export const generateTrip = async (req: Request, res: Response) => {
             {
                 headers: {
                     "Content-Type": "application/json",
-                    "X-goog-api-key": process.env.GEMINI_API_KEY as string 
+                    "X-goog-api-key": process.env.GEMINI_API_KEY as string
                 }
             }
         );
@@ -68,26 +68,26 @@ export const generateTrip = async (req: Request, res: Response) => {
 
         // Clean JSON
         generatedText = generatedText.replace(/```json/g, "").replace(/```/g, "").trim();
-        
+
         const tripData = JSON.parse(generatedText);
 
         res.status(200).json(tripData);
 
     } catch (error: any) {
         console.error("AI Error:", error.response?.data || error.message);
-        
-        res.status(500).json({ 
-            message: "AI Generation Failed", 
-            error: error.response?.data || error.message 
+
+        res.status(500).json({
+            message: "AI Generation Failed",
+            error: error.response?.data || error.message
         });
     }
 };
 
 
 export const saveTrip = async (req: Request, res: Response) => {
-    
+
     try {
-        
+
         const { userId, tripData, destination, noOfDays, budget, travelers } = req.body;
 
         if (!userId || !tripData || !destination || !noOfDays || !budget || !travelers) {
@@ -110,7 +110,7 @@ export const saveTrip = async (req: Request, res: Response) => {
     } catch (error: any) {
 
         res.status(500).json({ message: error.message })
-        
+
     }
 }
 
@@ -123,14 +123,31 @@ export const getMyTrips = async (req: AuthRequest, res: Response) => {
             return res.status(401).json({ message: "Unauthorized" })
         }
 
-        const trips = await Trip.find({ user: userId })
+        const page = parseInt(req.query.page as string) || 1
+        const limit = parseInt(req.query.limit as string) || 10
+        const skip = (page - 1) * limit
 
-        res.status(200).json({ data: trips })
+
+        const trips = await Trip.find({ user: userId })
+            .populate("user")
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+
+        const total = await Trip.countDocuments()
+
+        res.status(200).json({ 
+            message: "Trips fetched successfully",
+            data: trips ,
+            totalPages: Math.ceil(total / limit),
+            totalCount: total,
+            page
+        })
 
     } catch (error: any) {
 
         res.status(500).json({ message: error.message })
-        
+
     }
 }
 
@@ -150,6 +167,58 @@ export const deleteTrip = async (req: Request, res: Response) => {
     } catch (error: any) {
 
         res.status(500).json({ message: error.message })
-        
+
     }
 }
+
+export const getTripById = async (req: Request, res: Response) => {
+
+    try {
+        const { id } = req.params
+
+        if (!id) {
+            return res.status(400).json({ message: "Trip ID is required" })
+        }
+
+        const trip = await Trip.findById(id)
+
+        if (!trip) {
+            return res.status(404).json({ message: "Trip not found" })
+        }
+
+        res.status(200).json({ data: trip })
+
+    } catch (error: any) {
+
+        res.status(500).json({ message: error.message })
+
+    }
+}
+
+// Pexels Image Fetch Function
+export const getPlaceImage = async (req: Request, res: Response) => {
+     try {
+        const { query } = req.body; // Ex: "Kandy, Sri Lanka"
+
+        if (!query) return res.status(400).json({ message: "Query is required" });
+
+        const unsplashUrl = `https://api.unsplash.com/search/photos?query=${query}&per_page=1&orientation=landscape`;
+        
+        const response = await axios.get(unsplashUrl, {
+            headers: {
+
+                Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}` 
+            }
+        });
+
+        if (response.data.results.length > 0) {
+            return res.status(200).json({ imageUrl: response.data.results[0].urls.regular });
+        } else {
+            return res.status(200).json({ imageUrl: null }); 
+        }
+
+    } catch (error: any) {
+        console.error("Unsplash Error:", error.message);
+        res.status(200).json({ imageUrl: null }); 
+    }
+};
