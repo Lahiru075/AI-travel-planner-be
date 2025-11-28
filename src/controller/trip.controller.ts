@@ -1,6 +1,8 @@
 import axios from "axios";
 import { Request, Response } from "express";
 import dotenv from "dotenv";
+import { Trip } from "../model/trip.model";
+import { AuthRequest } from "../middleware/authenticate";
 
 dotenv.config();
 
@@ -39,7 +41,7 @@ export const generateTrip = async (req: Request, res: Response) => {
     `;
 
     try {
-        // 👇 වෙනස් කළ තැන: Model එක 'gemini-2.0-flash' වලට මාරු කළා (ඔයාගේ කලින් කෝඩ් එකේ වගේ)
+
         const response = await axios.post(
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
             {
@@ -52,7 +54,7 @@ export const generateTrip = async (req: Request, res: Response) => {
             {
                 headers: {
                     "Content-Type": "application/json",
-                    "X-goog-api-key": process.env.GEMINI_API_KEY as string // .env එකේ Key එක හරියට තියෙන්න ඕන
+                    "X-goog-api-key": process.env.GEMINI_API_KEY as string 
                 }
             }
         );
@@ -74,10 +76,80 @@ export const generateTrip = async (req: Request, res: Response) => {
     } catch (error: any) {
         console.error("AI Error:", error.response?.data || error.message);
         
-        // Error එක මොකක්ද කියලා හරියටම බලාගන්න
         res.status(500).json({ 
             message: "AI Generation Failed", 
             error: error.response?.data || error.message 
         });
     }
 };
+
+
+export const saveTrip = async (req: Request, res: Response) => {
+    
+    try {
+        
+        const { userId, tripData, destination, noOfDays, budget, travelers } = req.body;
+
+        if (!userId || !tripData || !destination || !noOfDays || !budget || !travelers) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        const newTrip = new Trip({
+            user: userId,
+            destination,
+            noOfDays,
+            budget,
+            travelers,
+            tripData
+        })
+
+        await newTrip.save()
+
+        res.status(200).json({ message: "Trip saved successfully" })
+
+    } catch (error: any) {
+
+        res.status(500).json({ message: error.message })
+        
+    }
+}
+
+export const getMyTrips = async (req: AuthRequest, res: Response) => {
+
+    try {
+        const userId = req.user.sub
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" })
+        }
+
+        const trips = await Trip.find({ user: userId })
+
+        res.status(200).json({ data: trips })
+
+    } catch (error: any) {
+
+        res.status(500).json({ message: error.message })
+        
+    }
+}
+
+export const deleteTrip = async (req: Request, res: Response) => {
+
+    try {
+        const { id } = req.params
+
+        if (!id) {
+            return res.status(400).json({ message: "Trip ID is required" })
+        }
+
+        await Trip.findByIdAndDelete(id)
+
+        res.status(200).json({ message: "Trip deleted successfully" })
+
+    } catch (error: any) {
+
+        res.status(500).json({ message: error.message })
+        
+    }
+}

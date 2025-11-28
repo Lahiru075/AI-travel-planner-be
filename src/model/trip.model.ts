@@ -4,10 +4,22 @@ export interface ITrip extends Document {
     _id: mongoose.Types.ObjectId,
     user: mongoose.Types.ObjectId,
     destination: string,
-    noOfData: number,
-    budget: number,
+    noOfDays: number,
+    budget: string,
     travelers: string,
-    tripDate: Date,
+    tripData: {
+        tripName: string;
+        hotels: string[];
+        itinerary: {
+            day: number;
+            plan: {
+                time: string;
+                place: string;
+                details: string;
+                ticketPrice: string;
+            }[];
+        }[];
+    };
 }
 
 const tripSchema = new mongoose.Schema<ITrip>({
@@ -20,20 +32,20 @@ const tripSchema = new mongoose.Schema<ITrip>({
         type: String,
         required: true
     },
-    noOfData: {
+    noOfDays: {
         type: Number,
         required: true
     },
     budget: {
-        type: Number,
+        type: String,
         required: true
     },
     travelers: {
         type: String,
         required: true
     },
-    tripDate: {
-        type: Date,
+    tripData: {
+        type: Object,
         required: true
     }
 }, {
