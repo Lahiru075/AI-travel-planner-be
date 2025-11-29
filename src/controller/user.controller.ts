@@ -72,7 +72,7 @@ export const loginUser = async (req: Request, res: Response) => {
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
-        if (user.status == Status.INACTIVE) {
+        if (user.status == Status.SUSPEND) {
             return res.status(401).json({ message: "User is inactive" });
         }
 
@@ -140,3 +140,4 @@ export const getMyDetails = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: "Internal server error" })
     }
 }
+

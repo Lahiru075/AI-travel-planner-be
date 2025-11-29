@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import userRoutes from "./routes/user.routes";
 import tripRoutes from "./routes/trip.routes";
+import adminRoutes from "./routes/admin.routes";
 dotenv.config();
 
 const SERVER_PORT = process.env.SERVER_PORT
@@ -16,13 +17,14 @@ app.use(express.json())
 app.use(
     cors({
         origin: ["http://localhost:5173"],
-        methods: ["GET", "POST", "PUT", "DELETE"]
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     })
 );
 
 
 app.use("/api/v1/users", userRoutes)
 app.use("/api/v1/trips", tripRoutes)
+app.use("/api/v1/admin", adminRoutes)
 
 mongoose
     .connect(MONGO_URI)

@@ -222,3 +222,30 @@ export const getPlaceImage = async (req: Request, res: Response) => {
         res.status(200).json({ imageUrl: null }); 
     }
 };
+
+
+export const getWeatherInfo = async (req: Request, res: Response) => {
+    try {
+        const { location } = req.body; // Ex: "Kandy"
+        if (!location) return res.status(400).json({ message: "Location required" });
+
+        // units=metric දැම්මම උෂ්ණත්වය Celsius වලින් එනවා
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=${process.env.OPENWEATHER_API_KEY}`;
+        
+        const response = await axios.get(url);
+        
+        // අපිට ඕන දේවල් විතරක් යවමු
+        const weatherData = {
+            temp: Math.round(response.data.main.temp), // උෂ්ණත්වය (Round කරලා)
+            condition: response.data.weather[0].main, // Rain, Clouds, Clear etc.
+            description: response.data.weather[0].description, // light rain, overcast clouds
+            icon: response.data.weather[0].icon // Icon code එක
+        };
+
+        res.status(200).json(weatherData);
+
+    } catch (error: any) {
+        console.error("Weather Error:", error.message);
+        res.status(500).json({ message: "Failed to fetch weather" });
+    }
+};
