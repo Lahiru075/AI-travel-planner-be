@@ -16,7 +16,9 @@ export interface IUser extends Document {
     email: string;
     password: string;
     role: Role[];
-    status: Status
+    status: Status;
+    resetPasswordToken?: string;
+    resetPasswordExpires?: Date;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -44,7 +46,9 @@ const userSchema = new mongoose.Schema<IUser>({
         type: String,
         enum: Object.values(Status),
         default: Status.ACTIVE
-    }
+    },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
 }, {
     timestamps: true
 });
