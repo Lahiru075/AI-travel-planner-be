@@ -134,7 +134,7 @@ export const getMyTrips = async (req: AuthRequest, res: Response) => {
             .skip(skip)
             .limit(limit)
 
-        const total = await Trip.countDocuments()
+        const total = await Trip.countDocuments({ user: userId })
 
         res.status(200).json({ 
             message: "Trips fetched successfully",
@@ -229,17 +229,15 @@ export const getWeatherInfo = async (req: Request, res: Response) => {
         const { location } = req.body; // Ex: "Kandy"
         if (!location) return res.status(400).json({ message: "Location required" });
 
-        // units=metric දැම්මම උෂ්ණත්වය Celsius වලින් එනවා
         const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=${process.env.OPENWEATHER_API_KEY}`;
         
         const response = await axios.get(url);
         
-        // අපිට ඕන දේවල් විතරක් යවමු
         const weatherData = {
-            temp: Math.round(response.data.main.temp), // උෂ්ණත්වය (Round කරලා)
-            condition: response.data.weather[0].main, // Rain, Clouds, Clear etc.
-            description: response.data.weather[0].description, // light rain, overcast clouds
-            icon: response.data.weather[0].icon // Icon code එක
+            temp: Math.round(response.data.main.temp), 
+            condition: response.data.weather[0].main, 
+            description: response.data.weather[0].description, 
+            icon: response.data.weather[0].icon 
         };
 
         res.status(200).json(weatherData);
