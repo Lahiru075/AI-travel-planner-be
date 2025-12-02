@@ -28,14 +28,32 @@ export const generateTrip = async (req: Request, res: Response) => {
             "tripName": "Trip to ${destination}",
             "hotels": ["Hotel 1", "Hotel 2", "Hotel 3"],
             "itinerary": [
-            {
-                "day": 1,
-                "plan": [
-                { "time": "Morning", "place": "Place Name", "details": "Activity details", "ticketPrice": "approx cost" },
-                { "time": "Afternoon", "place": "...", "details": "...", "ticketPrice": "..." },
-                { "time": "Evening", "place": "...", "details": "...", "ticketPrice": "..." }
-                ]
-            }
+                {
+                    "day": 1,
+                    "plan": [
+                        { 
+                            "time": "Morning", 
+                            "place": "Place Name", 
+                            "details": "Activity details", 
+                            "ticketPrice": "approx cost", 
+                            "geoCoordinates": { "lat": 6.9271, "lng": 79.8612 } 
+                        },
+                        { 
+                            "time": "Afternoon", 
+                            "place": "...", 
+                            "details": "...", 
+                            "ticketPrice": "...",
+                            "geoCoordinates": { "lat": 0.0, "lng": 0.0 } 
+                        },
+                        { 
+                            "time": "Evening", 
+                            "place": "...", 
+                            "details": "...", 
+                            "ticketPrice": "...",
+                            "geoCoordinates": { "lat": 0.0, "lng": 0.0 } 
+                        }
+                    ]
+                }
             ]
         }
     `;
@@ -136,9 +154,9 @@ export const getMyTrips = async (req: AuthRequest, res: Response) => {
 
         const total = await Trip.countDocuments({ user: userId })
 
-        res.status(200).json({ 
+        res.status(200).json({
             message: "Trips fetched successfully",
-            data: trips ,
+            data: trips,
             totalPages: Math.ceil(total / limit),
             totalCount: total,
             page
@@ -195,31 +213,44 @@ export const getTripById = async (req: Request, res: Response) => {
     }
 }
 
+export const getAllTrips = async (req: Request, res: Response) => {
+    try {
+        const trips = await Trip.find()
+            .populate('user', 'name email')
+            .sort({ createdAt: -1 })
+
+        res.status(200).json({ data: trips })
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching trips" })
+    }
+}
+
+
 // Pexels Image Fetch Function
 export const getPlaceImage = async (req: Request, res: Response) => {
-     try {
+    try {
         const { query } = req.body; // Ex: "Kandy, Sri Lanka"
 
         if (!query) return res.status(400).json({ message: "Query is required" });
 
         const unsplashUrl = `https://api.unsplash.com/search/photos?query=${query}&per_page=1&orientation=landscape`;
-        
+
         const response = await axios.get(unsplashUrl, {
             headers: {
 
-                Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}` 
+                Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}`
             }
         });
 
         if (response.data.results.length > 0) {
             return res.status(200).json({ imageUrl: response.data.results[0].urls.regular });
         } else {
-            return res.status(200).json({ imageUrl: null }); 
+            return res.status(200).json({ imageUrl: null });
         }
 
     } catch (error: any) {
         console.error("Unsplash Error:", error.message);
-        res.status(200).json({ imageUrl: null }); 
+        res.status(200).json({ imageUrl: null });
     }
 };
 
@@ -230,14 +261,14 @@ export const getWeatherInfo = async (req: Request, res: Response) => {
         if (!location) return res.status(400).json({ message: "Location required" });
 
         const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=${process.env.OPENWEATHER_API_KEY}`;
-        
+
         const response = await axios.get(url);
-        
+
         const weatherData = {
-            temp: Math.round(response.data.main.temp), 
-            condition: response.data.weather[0].main, 
-            description: response.data.weather[0].description, 
-            icon: response.data.weather[0].icon 
+            temp: Math.round(response.data.main.temp),
+            condition: response.data.weather[0].main,
+            description: response.data.weather[0].description,
+            icon: response.data.weather[0].icon
         };
 
         res.status(200).json(weatherData);

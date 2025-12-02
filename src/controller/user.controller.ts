@@ -171,7 +171,7 @@ export const googleLogin = async (req: Request, res: Response) => {
             user = new User({
                 name,
                 email,
-                password: hashedPassword, 
+                password: hashedPassword,
                 role: "USER",
                 status: "ACTIVE"
             });
@@ -200,7 +200,6 @@ export const googleLogin = async (req: Request, res: Response) => {
     }
 }
 
-
 export const forgotPassword = async (req: Request, res: Response) => {
     try {
         const { email } = req.body;
@@ -212,17 +211,27 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
         const resetToken = crypto.randomBytes(20).toString("hex");
 
- 
+
         user.resetPasswordToken = resetToken;
         user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
         await user.save();
 
+        // const transporter = nodemailer.createTransport({
+        //     service: "gmail",
+        //     auth: {
+        //         user: process.env.EMAIL_USER,
+        //         pass: process.env.EMAIL_PASS,
+        //     },
+        // });
+
+        // Looking to send emails in mailtrap sendbox
         const transporter = nodemailer.createTransport({
-            service: "gmail",
+            host: "sandbox.smtp.mailtrap.io",
+            port: 2525,
             auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
-            },
+                user: process.env.MAILTRAP_USER as string,
+                pass: process.env.MAILTRAP_PASS as string
+            }
         });
 
         const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
@@ -244,7 +253,6 @@ export const forgotPassword = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Email could not be sent" });
     }
 };
-
 
 export const resetPassword = async (req: Request, res: Response) => {
     try {
@@ -274,3 +282,49 @@ export const resetPassword = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Error resetting password" });
     }
 };
+
+export const getAllUsers = async (req: Request, res: Response) => {
+    try {
+        const users = await User.find({ role: Role.USER }).select('-password').sort({ createdAt: -1 })
+
+        res.status(200).json({ data: users })
+
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching users" })
+    }
+}
+
+export const suspendUser = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
+
+        if (!id) {
+            return res.status(400).json({ message: "User ID is required" })
+        }
+
+        await User.findByIdAndUpdate(id, { status: Status.SUSPEND }, { new: true })
+
+        res.status(200).json({ message: "User suspended successfully" })
+
+
+    } catch (error) {
+        res.status(500).json({ message: "Error suspending user" })
+    }
+}
+
+export const activateUser = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
+
+        if (!id) {
+            return res.status(400).json({ message: "User ID is required" })
+        }
+
+        await User.findByIdAndUpdate(id, { status: Status.ACTIVE }, { new: true })
+
+        res.status(200).json({ message: "User activated successfully" })
+
+    } catch (error) {
+        res.status(500).json({ message: "Error activating user" })
+    }
+}

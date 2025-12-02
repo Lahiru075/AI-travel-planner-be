@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { deleteTrip, generateTrip, getMyTrips, getPlaceImage, getTripById, getWeatherInfo, saveTrip } from "../controller/trip.controller";
+import { deleteTrip, generateTrip, getAllTrips, getMyTrips, getPlaceImage, getTripById, getWeatherInfo, saveTrip } from "../controller/trip.controller";
 import { authenticate } from "../middleware/authenticate";
+import { isAdmin } from "../middleware/isAdmin";
 
 const routes = Router();
 
@@ -11,5 +12,6 @@ routes.delete("/delete/:id", authenticate, deleteTrip)
 routes.get("/viewtrip/:id", authenticate, getTripById)
 routes.post("/getimage", authenticate, getPlaceImage);
 routes.post("/get_weather", authenticate, getWeatherInfo);
+routes.get("/all_trips", authenticate, isAdmin, getAllTrips);
 
 export default routes;
