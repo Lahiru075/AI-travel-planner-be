@@ -285,9 +285,26 @@ export const resetPassword = async (req: Request, res: Response) => {
 
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
-        const users = await User.find({ role: Role.USER }).select('-password').sort({ createdAt: -1 })
 
-        res.status(200).json({ data: users })
+        const page = parseInt(req.query.page as string) || 1
+        const limit = parseInt(req.query.limit as string) || 10
+        const skip = (page - 1) * limit
+
+        const users = await User.find({ role: Role.USER })
+            .select('-password')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+
+        const total = await User.countDocuments({ role: Role.USER })
+
+        res.status(200).json({ 
+            message: "Users fetched successfully",
+            data: users,
+            totalPages: Math.ceil(total / limit),
+            totalCount: total,
+            page 
+        })
 
     } catch (error) {
         res.status(500).json({ message: "Error fetching users" })
