@@ -60,8 +60,9 @@ export const generateTrip = async (req: Request, res: Response) => {
 
     try {
 
+        // Send request to Google Gemini Server
         const response = await axios.post(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
             {
                 contents: [
                     {
@@ -77,16 +78,18 @@ export const generateTrip = async (req: Request, res: Response) => {
             }
         );
 
-        // Data Extract
+        // Data Extract (apita awashya trip plan eka thiyana text kotasa withark thorala gannawa)
         let generatedText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
         if (!generatedText) {
             return res.status(500).json({ message: "AI did not return any text." });
         }
 
-        // Clean JSON
+        // Clean JSON (samahara wita answer eka ewanne markdown kelith ekka.. methnin karanne e anawashya code ain karala niwaradi json eka withark ithuru karana eka (replace athule use karanne regex))
+        // attatama methna thiyenne json object ekak newei Json string ekak..
         generatedText = generatedText.replace(/```json/g, "").replace(/```/g, "").trim();
 
+        // Parse to JSON object
         const tripData = JSON.parse(generatedText);
 
         res.status(200).json(tripData);
@@ -100,7 +103,6 @@ export const generateTrip = async (req: Request, res: Response) => {
         });
     }
 };
-
 
 export const saveTrip = async (req: Request, res: Response) => {
 
@@ -241,8 +243,6 @@ export const getAllTrips = async (req: Request, res: Response) => {
     }
 }
 
-
-// Pexels Image Fetch Function
 export const getPlaceImage = async (req: Request, res: Response) => {
     try {
         const { query } = req.body; // Ex: "Kandy, Sri Lanka"
@@ -270,7 +270,6 @@ export const getPlaceImage = async (req: Request, res: Response) => {
     }
 };
 
-
 export const getWeatherInfo = async (req: Request, res: Response) => {
     try {
         const { location } = req.body; // Ex: "Kandy"
@@ -292,5 +291,88 @@ export const getWeatherInfo = async (req: Request, res: Response) => {
     } catch (error: any) {
         console.error("Weather Error:", error.message);
         res.status(500).json({ message: "Failed to fetch weather" });
+    }
+};
+
+export const togglePublicStatus = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const trip = await Trip.findById(id);
+
+        if (!trip) {
+            return res.status(404).json({ message: "Trip not found" });
+        }
+
+        trip.isPublic = !trip.isPublic;
+
+        await trip.save();
+
+        res.status(200).json({ message: "Trip visibility updated", isPublic: trip.isPublic });
+
+    } catch (error) {
+
+        res.status(500).json({ message: "Error updating trip visibility" });
+        
+    }
+}
+
+export const getPublicTrips = async (req: Request, res: Response) => {
+    try {
+        const page = parseInt(req.query.page as string) || 1
+        const limit = parseInt(req.query.limit as string) || 10
+        const search = req.query.search as string || "";
+        const skip = (page - 1) * limit
+
+        const query: any = { isPublic: true };
+
+        if (search) {
+            query.destination = { $regex: search, $options: 'i' };
+        }
+
+        const trips = await Trip.find(query)
+            .populate('user', 'name email')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+
+        const total = await Trip.countDocuments(query)
+
+        res.status(200).json({
+            message: "Public Trips fetched successfully",
+            data: trips,
+            totalPages: Math.ceil(total / limit),
+            totalCount: total,
+            page
+        })        
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching public trips" })
+    }
+}
+
+export const cloneTrip = async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const trip = await Trip.findById(id);
+
+        if (!trip) {
+            return res.status(404).json({ message: "Trip not found" });
+        }
+
+        const newTrip = new Trip({
+            user: req.user.sub,
+            destination: trip.destination,
+            noOfDays: trip.noOfDays,
+            budget: trip.budget,
+            travelers: trip.travelers,
+            tripData: trip.tripData,
+            isPublic: false
+        });
+
+        await newTrip.save();
+
+        res.status(200).json({ message: "Trip cloned successfully", trip: newTrip });
+
+    } catch (error) {
+        res.status(500).json({ message: "Error cloning trip" });
     }
 };

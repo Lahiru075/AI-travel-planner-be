@@ -19,7 +19,8 @@ export interface ITrip extends Document {
                 ticketPrice: string;
             }[];
         }[];
-    };
+    },
+    isPublic: boolean,
 }
 
 const tripSchema = new mongoose.Schema<ITrip>({
@@ -47,6 +48,10 @@ const tripSchema = new mongoose.Schema<ITrip>({
     tripData: {
         type: Object,
         required: true
+    },
+    isPublic: {
+        type: Boolean,
+        default: false 
     }
 }, {
     timestamps: true

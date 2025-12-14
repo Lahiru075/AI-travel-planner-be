@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { forgotPassword, getAllUsers, getMyDetails, googleLogin, handleRefreshToken, loginUser, registerUser, resetPassword } from "../controller/user.controller";
+import {  forgotPassword, getAllUsers, getMyDetails, googleLogin, handleRefreshToken, loginUser, registerUser, resetPassword } from "../controller/user.controller";
 import { authenticate } from "../middleware/authenticate";
 import { isAdmin } from "../middleware/isAdmin";
 import { activateUser, suspendUser } from "../controller/user.controller";

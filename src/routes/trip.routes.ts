@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { deleteTrip, generateTrip, getAllTrips, getMyTrips, getPlaceImage, getTripById, getWeatherInfo, saveTrip } from "../controller/trip.controller";
+import { cloneTrip, deleteTrip, generateTrip, getAllTrips, getMyTrips, getPlaceImage, getPublicTrips, getTripById, getWeatherInfo, saveTrip, togglePublicStatus } from "../controller/trip.controller";
 import { authenticate } from "../middleware/authenticate";
 import { isAdmin } from "../middleware/isAdmin";
 
@@ -13,5 +13,8 @@ routes.get("/viewtrip/:id", authenticate, getTripById)
 routes.post("/getimage", authenticate, getPlaceImage);
 routes.post("/get_weather", authenticate, getWeatherInfo);
 routes.get("/all_trips", authenticate, isAdmin, getAllTrips);
+routes.patch("/publish/:id", authenticate, togglePublicStatus);
+routes.get("/public-trips/", authenticate, getPublicTrips);
+routes.post("/clone/:id", authenticate, cloneTrip);
 
 export default routes;

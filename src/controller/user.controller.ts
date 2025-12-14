@@ -159,14 +159,15 @@ export const googleLogin = async (req: Request, res: Response) => {
 
         if (!payload) return res.status(400).json({ message: "Invalid Google Token" });
 
-        const { email, name, picture } = payload;
+        const { email, name, picture } = payload; // token eka valid nam me widiyata data gannawa...
 
         let user = await User.findOne({ email });
 
+        // mehema user kenek neththan user kenek create karanawa....
         if (!user) {
-            const randomPassword = Math.random().toString(36).slice(-8);
+            const randomPassword = Math.random().toString(36).slice(-8); // random password create karanawa
 
-            const hashedPassword = await bcrypt.hash(randomPassword, 10);
+            const hashedPassword = await bcrypt.hash(randomPassword, 10); 
 
             user = new User({
                 name,
@@ -179,6 +180,8 @@ export const googleLogin = async (req: Request, res: Response) => {
             await user.save();
 
         }
+
+        // ita psse user login karanawa...
 
         const accessToken = signAccessToken(user);
 
@@ -224,7 +227,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
         //     },
         // });
 
-        // Looking to send emails in mailtrap sendbox
+        // mailtrap site eke sandbox eke thamai save wenne
         const transporter = nodemailer.createTransport({
             host: "sandbox.smtp.mailtrap.io",
             port: 2525,
@@ -268,8 +271,7 @@ export const resetPassword = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "Invalid or expired token" });
         }
 
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(password, salt);
+        user.password = await bcrypt.hash(password, 10);
 
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
@@ -298,12 +300,12 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
         const total = await User.countDocuments({ role: Role.USER })
 
-        res.status(200).json({ 
+        res.status(200).json({
             message: "Users fetched successfully",
             data: users,
             totalPages: Math.ceil(total / limit),
             totalCount: total,
-            page 
+            page
         })
 
     } catch (error) {
