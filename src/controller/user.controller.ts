@@ -7,6 +7,7 @@ import dotenv from "dotenv"
 import { AuthRequest } from "../middleware/authenticate";
 import { OAuth2Client } from "google-auth-library";
 import nodemailer from "nodemailer";
+import cloudinary from "../config/cloudinary";
 import crypto from "crypto";
 dotenv.config()
 
@@ -167,7 +168,7 @@ export const googleLogin = async (req: Request, res: Response) => {
         if (!user) {
             const randomPassword = Math.random().toString(36).slice(-8); // random password create karanawa
 
-            const hashedPassword = await bcrypt.hash(randomPassword, 10); 
+            const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
             user = new User({
                 name,
@@ -347,3 +348,62 @@ export const activateUser = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Error activating user" })
     }
 }
+
+export const updateProfile = async (req: Request | any, res: Response) => {
+    try {
+        const userId = req.user.sub; 
+
+        const { name, email, password } = req.body;
+
+        let user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        if (req.file) {
+            const result: any = await new Promise((resole, reject) => {
+                const upload_stream = cloudinary.uploader.upload_stream(
+                    { folder: "Ai_trip_planner" },
+                    (error, result) => {
+                        if (error) {
+                            console.error(error)
+                            return reject(error)
+                        }
+                        resole(result) 
+                    }
+                )
+                upload_stream.end(req.file?.buffer)
+            })
+            user.profilePicture = result.secure_url;
+        }
+
+        if (name) user.name = name;
+        if (email) {
+            const emailExists = await User.findOne({ email });
+            if (emailExists && emailExists._id.toString() !== userId) {
+                return res.status(400).json({ message: "Email already in use" });
+            }
+            user.email = email;
+        }
+
+        if (password) {
+            user.password = await bcrypt.hash(password, 10);
+        }
+
+        await user.save();
+
+        res.status(200).json({
+            message: "Profile updated successfully",
+            data: {
+                _id: user._id,
+                email: user.email,
+                role: user.role,
+                status: user.status,
+                name: user.name,
+                profilePicture: user.profilePicture
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error updating profile" });
+    }
+};

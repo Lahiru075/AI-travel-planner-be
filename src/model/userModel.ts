@@ -17,6 +17,7 @@ export interface IUser extends Document {
     password: string;
     role: Role[];
     status: Status;
+    profilePicture?: string;
     resetPasswordToken?: string;
     resetPasswordExpires?: Date;
     createdAt: Date;
@@ -46,6 +47,10 @@ const userSchema = new mongoose.Schema<IUser>({
         type: String,
         enum: Object.values(Status),
         default: Status.ACTIVE
+    },
+    profilePicture: { 
+        type: String, 
+        default: "" 
     },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
