@@ -101,13 +101,14 @@ To run this project, you will need to add the following environment variables to
 ---
 
 ## 📂 Project Structure
-`src/
-├── config/ # Database & Cloudinary configurations
-├── controller/ # Logic for API endpoints (Auth, Trip, Admin, User)
-├── middleware/ # Auth & Admin verification middleware
-├── models/ # Mongoose Schemas (User, Trip)
-├── routes/ # API Route definitions
-└── index.ts # Entry point`
+```bash
+src/
+├── config/         # Database & Cloudinary configurations
+├── controller/     # Logic for API endpoints (Auth, Trip, Admin, User)
+├── middleware/     # Auth & Admin verification middleware
+├── models/         # Mongoose Schemas (User, Trip)
+├── routes/         # API Route definitions
+└── index.ts        # Entry point
 
 ---
 
