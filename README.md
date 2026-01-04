@@ -108,6 +108,7 @@ src/
 ├── middleware/     # Auth & Admin verification middleware
 ├── models/         # Mongoose Schemas (User, Trip)
 ├── routes/         # API Route definitions
+├── utils/          # Helper functions (JWT Token generation)
 └── index.ts        # Entry point
 ```
 ---
