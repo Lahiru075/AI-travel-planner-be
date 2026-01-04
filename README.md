@@ -4,7 +4,7 @@
 
 ## 🚀 Live Demo
 **Backend URL:** [Link to your Render Deployment] 
-**Frontend Repository:** [Link to Frontend GitHub Repo]
+**Frontend Repository:** [[Link to Frontend GitHub Repo](https://github.com/Lahiru075/AI-travel-planner-fe.git)]
 
 ---
 
