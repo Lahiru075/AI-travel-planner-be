@@ -109,7 +109,7 @@ src/
 ├── models/         # Mongoose Schemas (User, Trip)
 ├── routes/         # API Route definitions
 └── index.ts        # Entry point
-
+```
 ---
 
 ## 🔗 API Endpoints Overview
