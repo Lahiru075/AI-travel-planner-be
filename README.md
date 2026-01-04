@@ -15,7 +15,7 @@
 *   **Language:** TypeScript
 *   **Database:** MongoDB (via Mongoose)
 *   **Authentication:** JSON Web Tokens (JWT) & Google OAuth
-*   **AI Integration:** Google Gemini 1.5 Flash
+*   **AI Integration:** Google Gemini 2.5 Flash
 *   **Image Storage:** Cloudinary
 *   **Email Service:** Nodemailer (Mailtrap for testing)
 *   **External APIs:**
